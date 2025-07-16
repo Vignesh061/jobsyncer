@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JobSyncer</title>
-    <link rel="stylesheet" href="style.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+
+ 
 
     <nav class="navbar">
         <div class="nav-container">
@@ -16,26 +18,23 @@
             </div>
             <div class="nav-links" id="navLinks">
                 <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#upload">Upload Resume</a></li>
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#contact">Contact Us</a></li>
+                    <li style="--i:1"><a href="#home">Home</a></li>
+                    <li style="--i:2"><a href="#about">About</a></li>
+                    <li style="--i:3"><a href="#resume-matcher">Upload Resume</a></li>
+                    <li style="--i:4"><a href="#features">Features</a></li>
+                    <li style="--i:5"><a href="#contact">Contact Us</a></li>
+                    <li style="--i:6"><a href="#login" class="login-btn">Login</a></li>
+                    <li style="--i:7"><a href="#signup" class="signup-btn">Sign Up</a></li>
                 </ul>
-                <div class="auth-links mobile-only">
-                    <a href="#login">Login</a>
-                    <a href="#signup" class="signup-btn">Sign Up</a>
-                </div>
             </div>
-            <div class="auth-links desktop-only">
-                <a href="#login">Login</a>
-                <a href="#signup" class="signup-btn">Sign Up</a>
-            </div>
-            <div class="hamburger-menu" onclick="toggleMenu()" id="hamburger">
-                <span>&#9776;</span>
+            <div class="hamburger-menu" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
             </div>
         </div>
     </nav>
+
 
 <!-- Home Section -->
 <section id="home" class="home-section">
@@ -43,7 +42,7 @@
         <div class="home-content">
             <h2>Welcome to JobSyncer</h2>
             <p>Your secret weapon in the job market! Perfectly tailor your resume for each job application and maximize your chances of getting noticed.</p>
-            <a href="#upload" class="cta-btn">Get Started</a>
+            <a href="#resume-matcher" class="cta-btn">Get Started</a>
         </div>
     </div>
 </section>
@@ -78,39 +77,156 @@
             </div>
         </div>
     </div>
-</section>
-
-<!-- Upload Resume Section -->
-<section id="upload" class="upload-section">
-    <div class="container">
-        <h2>Resume Matcher & ATS Friendly Checker</h2>
-        
-        <form action="/" method="POST" enctype="multipart/form-data" class="form-card">
-            <label for="resume"><i class="fas fa-file-pdf"></i> Upload Resume (PDF only):</label>
-            <input type="file" name="resume" id="resume" accept=".pdf" required>
+</section><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Matcher & ATS Friendly Checker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Upload Section -->
+    <section id="resume-matcher" class="resume-matcher">
+        <div class="container">
+            <h1 class="app-title">Resume Matcher & ATS Friendly Checker</h1>
             
-            <label for="job_desc"><i class="fas fa-briefcase"></i> Job Description:</label>
-            <textarea name="job_desc" id="job_desc" rows="5" placeholder="Paste the job description here..." required></textarea>
-            
-            <div class="button-group">
-                <button type="submit" class="check-btn"><i class="fas fa-check-circle"></i> Check Resume</button>
-                <button type="button" id="Refreshbtn" class="refresh-btn"><i class="fas fa-redo"></i> Reset</button>
+            {% if error %}
+            <div class="error-alert" style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px; text-align: center;">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
             </div>
-        </form>
-        
-        {% if score is not none %}
-        <div id="results" class="results-card">
-            <h3><i class="fas fa-chart-pie"></i> Resume Match Score: {{ score }}%</h3>
-            <h4><i class="fas fa-check-square"></i> ATS Friendliness Check:</h4>
-            <ul>
-                {% for issue in ats_issues %}
-                <li>{{ issue }}</li>
-                {% endfor %}
-            </ul>
+            {% endif %}
+            
+            <div class="app-container">
+                <!-- Input Section (Left) -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <h2 class="card-title">Upload Resume</h2>
+                    </div>
+                    
+                    <form action="/" method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="resume">Select your resume (PDF only):</label>
+                            <input type="file" name="resume" id="resume" accept=".pdf" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="job_desc">Job Description:</label>
+                            <textarea name="job_desc" id="job_desc" placeholder="Paste the job description here..." required>{{ job_description|default('') }}</textarea>
+                            <div class="input-stats">
+                                <span id="word-counter">0 words</span>
+                                <span id="char-counter">0 characters</span>
+                            </div>
+                        </div>
+                        
+                        <div class="controls-row">
+                            <button type="submit" id="check-btn" class="action-btn">
+                                <i class="fas fa-check-circle btn-icon"></i>
+                                Check Resume
+                            </button>
+                            <button type="button" id="reset-btn" class="secondary-btn">
+                                <i class="fas fa-redo btn-icon"></i>
+                                Reset
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <p class="tip">
+                                <i class="fas fa-lightbulb" style="color: #ffc107;"></i>
+                                <small>Tip: For best results, make sure your resume is properly formatted and uses standard fonts</small>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Output Section (Right) -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h2 class="card-title">ATS Analysis Results</h2>
+                    </div>
+                    
+                    <div class="loading" id="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Analyzing your resume...</p>
+                    </div>
+                    
+                    <div class="results-container">
+                        {% if score is none %}
+                        <div id="results-placeholder" class="results-placeholder">
+                            <i class="fas fa-file-signature" style="font-size: 32px; margin-bottom: 15px;"></i>
+                            <p>Your ATS analysis will appear here</p>
+                        </div>
+                        {% else %}
+                        <div id="results-output" class="results-output">
+                            <div class="score-section">
+                                <div class="score-circle" data-score="{{ score }}">
+                                    <span id="match-score">{{ score }}%</span>
+                                </div>
+                                <h3>Resume Match Score</h3>
+                            </div>
+                            
+                            <div class="ats-section">
+                                <h4><i class="fas fa-check-square"></i> ATS Friendliness Check:</h4>
+                                <ul id="ats-issues" class="ats-issues-list">
+                                    {% for issue in ats_issues %}
+                                    <li>{{ issue }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            
+                            <div class="keywords-section">
+                                <h4><i class="fas fa-key"></i> Missing Keywords:</h4>
+                                <div id="missing-keywords" class="keywords-list">
+                                    {% if missing_keywords %}
+                                        {% for keyword in missing_keywords %}
+                                        <span class="keyword-pill keyword-tag">{{ keyword }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p>No missing keywords detected!</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if analysis_date %}
+                            <div class="analysis-timestamp" style="margin-top: 20px; text-align: center; color: #6c757d; font-size: 0.9rem;">
+                                <small>Analysis performed on: {{ analysis_date }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="action-bar">
+                        <div class="results-stats">
+                            <small id="results-stats">
+                                {% if score is not none %}
+                                Analysis complete!
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="download-btn-wrapper">
+                            <button id="download-btn" class="download-btn" {% if score is none %}disabled{% endif %}>
+                                <i class="fas fa-download"></i> Download Report
+                            </button>
+                            <span class="tooltip" id="download-tooltip">Downloaded!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        {% endif %}
-    </div>
-</section>
+    </section>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
+
 <!-- Features Section -->
 <section id="features" class="features-section">
     <div class="container">
@@ -244,11 +360,9 @@
     </div>
 </footer>
 
-</section>
 
 
 <!-- JavaScript for -->
-
-     <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
